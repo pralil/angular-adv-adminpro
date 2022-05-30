@@ -1,5 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { SidebarService } from 'src/app/services/sidebar.service';
+import { UsuarioService } from '../../services/usuario.service';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-sidebar',
@@ -7,16 +9,19 @@ import { SidebarService } from 'src/app/services/sidebar.service';
   styles: [
   ]
 })
-export class SidebarComponent implements OnInit {
+export class SidebarComponent {
 
   menuItems!: any[];
 
-  constructor( private sidebarService: SidebarService) { 
+  constructor( private sidebarService: SidebarService,
+               private usuarioService: UsuarioService,
+               private router: Router ) { 
     this.menuItems = sidebarService.menu;
     
   }
 
-  ngOnInit(): void {
+  logout() {
+    this.usuarioService.logout();
   }
 
 }
