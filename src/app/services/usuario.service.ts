@@ -9,6 +9,7 @@ import { RegisterForm } from '../interfaces/register-form.interface';
 import { LoginForm } from '../interfaces/login-form.interface';
 import { map, Observable, of } from 'rxjs';
 import { Usuario } from '../models/usuario.model';
+import { CargarUsuario } from '../interfaces/cargar-usuarios.interface';
 
 const base_url = environment.base_url;
 
@@ -38,6 +39,13 @@ export class UsuarioService {
     return this.usuario!.uid || ''; 
   }  
 
+  get headers() {
+    return {
+      headers: {
+        'x-token': this.token
+      }
+    }
+  }
   
   googleInit() {
 
@@ -102,14 +110,10 @@ export class UsuarioService {
 
     data = {
       ...data,
-      role: 'USER_ROLE'
-    
+      role: this.usuario?.role || ''
     }
-    return this.http.put(`${base_url}/usuarios/${this.uid}`, data, {
-      headers: {
-        'x-token': this.token
-      }
-    });
+
+    return this.http.put(`${base_url}/usuarios/${this.uid}`, this.headers);
   
   }
 
@@ -134,4 +138,35 @@ export class UsuarioService {
         );
   }
  
+  cargarUsuarios( desde: number = 0 ) {
+
+    const url = `${ base_url }/usuarios?desde=${ desde }`; 
+
+    return this.http.get<CargarUsuario>( url, this.headers )
+          .pipe(
+            map( resp => {
+              // console.log(resp);
+              const usuarios = resp.usuarios.map( 
+                user => new Usuario( user.nombre, user.email, '', user.img, user.google, user.role, user.uid ) 
+              );
+              return {
+                total: resp.total,
+                usuarios
+              };
+            })
+          )
+  }
+
+  eliminarUsuario( usuario: Usuario ) {
+    
+    const url = `${base_url}/usuarios/${ usuario.uid }`;
+    return this.http.delete( url, this.headers );  
+
+  }
+
+  guardarUsuario( usuario: Usuario ) {
+
+    return this.http.put(`${base_url}/usuarios/${ usuario.uid }`, usuario, this.headers);
+  
+  }
 }
