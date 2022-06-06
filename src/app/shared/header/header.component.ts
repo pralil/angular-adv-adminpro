@@ -20,4 +20,8 @@ export class HeaderComponent {
     this.usuarioService.logout();
   }
 
+  buscar( termino: string ) {
+    console.log(termino);    
+  }
+
 }

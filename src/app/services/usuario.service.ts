@@ -33,6 +33,11 @@ export class UsuarioService {
 
   get token(): string {
     return localStorage.getItem('token') || '';
+    
+  }
+
+  get role (): 'ADMIN_ROLE' | 'USER_ROLE' {
+    return this.usuario?.role!;
   }
 
   get uid(): string {
@@ -58,11 +63,16 @@ export class UsuarioService {
 
   }              
 
-
+  guardarLocalStorege(token: string, menu: any ){
+    localStorage.setItem('token', token );
+    localStorage.setItem('menu', JSON.stringify( menu ) ); 
+  }
   
 
   logout() {
     localStorage.removeItem('token');
+    localStorage.removeItem('menu');
+
     this.router.navigateByUrl('/login');
     
 
@@ -83,13 +93,14 @@ export class UsuarioService {
         'x-token': this.token
       }
     }).pipe(
-      tap( (resp: any) => {
+      map( (resp: any) => {
         const { nombre, email, img, google, role, uid } = resp.usuario;
         this.usuario = new Usuario(nombre, email, '', img, google, role, uid);
         
-        localStorage.setItem('token', resp.token );
+        this.guardarLocalStorege(resp.token, resp.menu);
+
+        return true;
       }), 
-      map( (resp: any) => true),
       catchError( error => of(false) ) 
     );
 
@@ -100,7 +111,7 @@ export class UsuarioService {
     return this.http.post(`${base_url}/usuarios`, formData)
       .pipe(
         tap( (resp: any) => {
-          localStorage.setItem('token', resp.token )
+          this.guardarLocalStorege(resp.token, resp.menu);
         })
       );
     
@@ -110,10 +121,10 @@ export class UsuarioService {
 
     data = {
       ...data,
-      role: this.usuario?.role || ''
+      role: this.usuario!.role || ''
     }
 
-    return this.http.put(`${base_url}/usuarios/${this.uid}`, this.headers);
+    return this.http.put(`${base_url}/usuarios/${this.uid}`, data, this.headers);
   
   }
 
@@ -122,7 +133,7 @@ export class UsuarioService {
     return this.http.post(`${base_url}/login`, formData)
       .pipe(
         tap( (resp: any) => {
-          localStorage.setItem('token', resp.token )
+          this.guardarLocalStorege(resp.token, resp.menu);
         })
       );
     
@@ -133,7 +144,7 @@ export class UsuarioService {
     return this.http.post(`${ base_url }/login/google`, { token } )
         .pipe(
           tap( (resp: any ) => {
-            localStorage.setItem('token', resp.token )
+            this.guardarLocalStorege(resp.token, resp.menu);
           })
         );
   }
